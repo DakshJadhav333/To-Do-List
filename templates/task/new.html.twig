@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-100 flex justify-center pt-24">
+    <div class="w-full max-w-xl bg-white rounded-xl shadow-lg p-8">
+        <h1 class="text-3xl font-bold mb-6">Add Task</h1>
+
+        {{ form_start(form) }}
+
+        <div class="mb-4">
+            {{ form_label(form.title, null, {
+                label_attr: { class: 'block mb-1 font-medium' }
+            }) }}
+            {{ form_widget(form.title, {
+                attr: {
+                    class: 'w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500'
+                }
+            }) }}
+            {{ form_errors(form.title) }}
+        </div>
+
+        <div class="mb-6 flex items-center">
+            {{ form_widget(form.completed, {
+                attr: { class: 'mr-2' }
+            }) }}
+            {{ form_label(form.completed) }}
+        </div>
+
+        <button
+            class="rounded-lg bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700"
+        >
+            Save Task
+        </button>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}
