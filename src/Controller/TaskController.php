@@ -15,16 +15,19 @@ use Symfony\Component\Routing\Annotation\Route;
 class TaskController extends AbstractController
 {
     #[Route('/', name: 'task_index')]
-    public function index(TaskRepository $repo): Response
-    {
-        $tasks = $repo->findBy([], ['createdAt' => 'DESC']);
+    public function index(Request $request, TaskRepository $repo): Response {
+        $search = $request->query->get('q');
+
+        $tasks = $repo->searchByTitle($search);
 
         return $this->render('task/index.html.twig', [
             'tasks' => $tasks,
             'total' => count($tasks),
             'completed' => $repo->countCompleted(),
+            'search' => $search,
         ]);
     }
+
 
     #[Route('/new', name: 'task_new')]
     public function new(Request $request, EntityManagerInterface $em): Response

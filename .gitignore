@@ -1,4 +1,9 @@
 
+# Know who you are ignoring
+.env
+.env.*
+!.env.example
+
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php

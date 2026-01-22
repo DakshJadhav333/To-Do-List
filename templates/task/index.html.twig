@@ -1,98 +1,145 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}My Tasks{% endblock %}
+
 {% block body %}
-<div class="max-w-6xl mx-auto py-10">
 
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-8">
-        <h1 class="text-4xl font-bold text-gray-800">My Tasks</h1>
+<!-- PAGE BACKGROUND -->
+<div class="bg-secondary bg-opacity-10 py-5">
 
-        <a href="{{ path('task_new') }}"
-           class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg shadow">
-            + New Task
-        </a>
-    </div>
+    <div class="container">
 
-    <!-- Task Card -->
-    <div class="bg-white rounded-xl shadow divide-y">
+        <!-- MAIN CONTENT WRAPPER -->
+        <div class="bg-white rounded shadow p-4">
 
-        {% for task in tasks %}
-    <div class="flex items-center justify-between px-6 py-4 hover:bg-gray-50">
+            <!-- HEADER -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1">My Tasks</h2>
+                    <p class="text-muted mb-0">Stay organized and productive</p>
+                </div>
 
-        <!-- Left -->
-        <div class="flex items-center gap-4">
+                <div class="d-flex gap-2">
+                    <form method="get" action="{{ path('task_index') }}" class="d-flex">
+                        <input
+                            type="text"
+                            name="q"
+                            value="{{ search }}"
+                            class="form-control"
+                            placeholder="Search tasks..."
+                        >
+                        <button class="btn btn-outline-primary ms-2">
+                            Search
+                        </button>
+                    </form>
 
-            <!-- Toggle completed -->
-            <form method="post"
-                action="{{ path('task_toggle', {id: task.id}) }}">
-                <button
-                    class="w-5 h-5 flex items-center justify-center rounded border
-                        {% if task.completed %}
-                            bg-indigo-600 border-indigo-600 text-white
-                        {% else %}
-                            border-gray-400
-                        {% endif %}"
-                    title="Toggle completed">
-                    <span class="text-xs">
-                        {% if task.completed %}✓{% endif %}
-                    </span>
-                </button>
-            </form>
+                    {% if app.user %}
+                        <a href="{{ path('task_new') }}" class="btn btn-primary">
+                            New Task
+                        </a>
 
-            <!-- Title -->
-            <span class="text-lg
-                {% if task.completed %}
-                    line-through text-gray-400
-                {% else %}
-                    text-gray-800
-                {% endif %}
-            ">
-                {{ task.title }}
-            </span>
+                        <a href="{{ path('app_logout') }}" class="btn btn-outline-danger">
+                            Logout
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
 
-            <!-- Priority -->
-            <span class="text-xs font-semibold px-3 py-1 rounded-full
-                {% if task.priority == 'HIGH' %}
-                    bg-red-100 text-red-600
-                {% elseif task.priority == 'MEDIUM' %}
-                    bg-yellow-100 text-yellow-700
-                {% else %}
-                    bg-green-100 text-green-600
-                {% endif %}
-            ">
-                {{ task.priority }}
-            </span>
+            <!-- TASK LIST -->
+            <div class="card mb-4">
+                <ul class="list-group list-group-flush">
+
+                    {% for task in tasks %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                            <div class="d-flex align-items-center gap-3">
+
+                                <form method="post" action="{{ path('task_toggle', {id: task.id}) }}">
+                                    <button class="btn btn-sm
+                                        {% if task.completed %}
+                                            btn-success
+                                        {% else %}
+                                            btn-outline-secondary
+                                        {% endif %}
+                                    ">
+                                        ✓
+                                    </button>
+                                </form>
+
+                                <span class="{% if task.completed %}text-decoration-line-through text-muted{% endif %}">
+                                    {{ task.title }}
+                                </span>
+
+                                <span class="badge
+                                    {% if task.priority == 'HIGH' %}
+                                        bg-danger
+                                    {% elseif task.priority == 'MEDIUM' %}
+                                        bg-warning text-dark
+                                    {% else %}
+                                        bg-success
+                                    {% endif %}
+                                ">
+                                    {{ task.priority }}
+                                </span>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('task_edit', {id: task.id}) }}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Edit
+                                </a>
+
+                                <form method="post"
+                                      action="{{ path('task_delete', {id: task.id}) }}"
+                                      onsubmit="return confirm('Delete this task?');">
+                                    <input type="hidden" name="_token"
+                                           value="{{ csrf_token('delete' ~ task.id) }}">
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item text-center text-muted py-4">
+                            No tasks found
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- STATS -->
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Total</p>
+                            <h4 class="fw-bold">{{ total }}</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Completed</p>
+                            <h4 class="fw-bold text-success">{{ completed }}</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Remaining</p>
+                            <h4 class="fw-bold text-warning">{{ total - completed }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
-
-        <!-- Actions -->
-        <div class="flex items-center gap-4">
-            <a href="{{ path('task_edit', {id: task.id}) }}"
-            class="text-blue-500 hover:text-blue-700">
-                ✏️
-            </a>
-
-            <form method="post"
-                action="{{ path('task_delete', {id: task.id}) }}"
-                onsubmit="return confirm('Delete this task?');">
-                <input type="hidden" name="_token"
-                    value="{{ csrf_token('delete' ~ task.id) }}">
-                <button class="text-red-500 hover:text-red-700">
-                    🗑️
-                </button>
-            </form>
-        </div>
     </div>
-    {% else %}
-    <p class="text-center py-8 text-gray-500">No tasks yet</p>
-    {% endfor %}
-    </div>
-
-    <!-- Footer Stats -->
-    <div class="mt-6 bg-white rounded-lg shadow px-6 py-4 flex justify-between text-sm text-gray-600">
-        <span>Total: {{ total }}</span>
-        <span>Completed: {{ completed }}</span>
-        <span>Remaining: {{ total - completed }}</span>
-    </div>
-
 </div>
+
 {% endblock %}
