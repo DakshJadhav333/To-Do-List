@@ -5,40 +5,53 @@
 {% block body %}
 
 <!-- PAGE BACKGROUND -->
-<div class="bg-secondary bg-opacity-10 py-5">
+<div class="bg-light py-5">
 
     <div class="container">
 
         <!-- MAIN CONTENT WRAPPER -->
-        <div class="bg-white rounded shadow p-4">
+        <div class="inner-wrapper rounded-4 shadow-sm p-4">
+
 
             <!-- HEADER -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+
+                <!-- Title -->
                 <div>
                     <h2 class="fw-bold mb-1">My Tasks</h2>
                     <p class="text-muted mb-0">Stay organized and productive</p>
                 </div>
 
-                <div class="d-flex gap-2">
+                <!-- Right Side -->
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+
+                    <!-- Logged in user -->
+                    {% if app.user %}
+                        <div class="px-3 py-2 rounded-pill bg-primary bg-opacity-10 text-primary fw-semibold small">
+                            👤 {{ app.user.userIdentifier }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Search -->
                     <form method="get" action="{{ path('task_index') }}" class="d-flex">
                         <input
                             type="text"
                             name="q"
                             value="{{ search }}"
-                            class="form-control"
+                            class="form-control rounded-pill"
                             placeholder="Search tasks..."
                         >
-                        <button class="btn btn-outline-primary ms-2">
-                            Search
+                        <button class="btn btn-outline-primary rounded-pill ms-2">
+                            🔍
                         </button>
                     </form>
 
                     {% if app.user %}
-                        <a href="{{ path('task_new') }}" class="btn btn-primary">
-                            New Task
+                        <a href="{{ path('task_new') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                            + New Task
                         </a>
 
-                        <a href="{{ path('app_logout') }}" class="btn btn-outline-danger">
+                        <a href="{{ path('app_logout') }}" class="btn btn-outline-danger rounded-pill px-4">
                             Logout
                         </a>
                     {% endif %}
@@ -46,16 +59,18 @@
             </div>
 
             <!-- TASK LIST -->
-            <div class="card mb-4">
+            <div class="card border-0 shadow-sm mb-4">
                 <ul class="list-group list-group-flush">
 
                     {% for task in tasks %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <li class="list-group-item d-flex justify-content-between align-items-center
+                                   task-row">
 
+                            <!-- Left -->
                             <div class="d-flex align-items-center gap-3">
 
                                 <form method="post" action="{{ path('task_toggle', {id: task.id}) }}">
-                                    <button class="btn btn-sm
+                                    <button class="btn btn-sm rounded-circle
                                         {% if task.completed %}
                                             btn-success
                                         {% else %}
@@ -66,11 +81,15 @@
                                     </button>
                                 </form>
 
-                                <span class="{% if task.completed %}text-decoration-line-through text-muted{% endif %}">
+                                <span class="fw-semibold
+                                    {% if task.completed %}
+                                        text-decoration-line-through text-muted
+                                    {% endif %}
+                                ">
                                     {{ task.title }}
                                 </span>
 
-                                <span class="badge
+                                <span class="badge rounded-pill
                                     {% if task.priority == 'HIGH' %}
                                         bg-danger
                                     {% elseif task.priority == 'MEDIUM' %}
@@ -83,10 +102,11 @@
                                 </span>
                             </div>
 
+                            <!-- Actions -->
                             <div class="d-flex gap-2">
                                 <a href="{{ path('task_edit', {id: task.id}) }}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    Edit
+                                   class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    ✏️ Edit
                                 </a>
 
                                 <form method="post"
@@ -94,8 +114,8 @@
                                       onsubmit="return confirm('Delete this task?');">
                                     <input type="hidden" name="_token"
                                            value="{{ csrf_token('delete' ~ task.id) }}">
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        Delete
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                        🗑️ Delete
                                     </button>
                                 </form>
                             </div>
@@ -109,9 +129,9 @@
             </div>
 
             <!-- STATS -->
-            <div class="row text-center">
+            <div class="row text-center g-3">
                 <div class="col-md-4">
-                    <div class="card shadow-sm">
+                    <div class="card border-0 shadow-sm rounded-4">
                         <div class="card-body">
                             <p class="text-muted mb-1">Total</p>
                             <h4 class="fw-bold">{{ total }}</h4>
@@ -120,7 +140,7 @@
                 </div>
 
                 <div class="col-md-4">
-                    <div class="card shadow-sm">
+                    <div class="card border-0 shadow-sm rounded-4">
                         <div class="card-body">
                             <p class="text-muted mb-1">Completed</p>
                             <h4 class="fw-bold text-success">{{ completed }}</h4>
@@ -129,7 +149,7 @@
                 </div>
 
                 <div class="col-md-4">
-                    <div class="card shadow-sm">
+                    <div class="card border-0 shadow-sm rounded-4">
                         <div class="card-body">
                             <p class="text-muted mb-1">Remaining</p>
                             <h4 class="fw-bold text-warning">{{ total - completed }}</h4>
@@ -141,5 +161,25 @@
         </div>
     </div>
 </div>
+
+<!-- HOVER EFFECT -->
+<style>
+/* Inner dashboard background (darker grey) */
+.inner-wrapper {
+    background: #e2e8f0; /* darker grey-blue */
+}
+
+/* Task row hover effect */
+.task-row {
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.task-row:hover {
+    background-color: #e0e7ff;
+    transform: scale(1.01);
+}
+
+
+</style>
 
 {% endblock %}
