@@ -7,11 +7,14 @@
         "php": ">=8.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "predis/predis": "*",
+        "symfony/cache": "7.4.*",
         "symfony/console": "7.4.*",
         "symfony/dotenv": "7.4.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "7.4.*",
         "symfony/runtime": "7.4.*",
+        "symfony/security-csrf": "7.4.*",
         "symfony/webapp-pack": "*",
         "symfony/webpack-encore-bundle": "*",
         "symfony/yaml": "7.4.*",
@@ -68,5 +71,8 @@
             "allow-contrib": false,
             "require": "7.4.*"
         }
+    },
+    "require-dev": {
+        "symfony/validator": "7.4.*"
     }
 }

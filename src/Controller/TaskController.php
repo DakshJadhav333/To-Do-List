@@ -4,8 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Task;
 use App\Form\TaskType;
-use App\Repository\TaskRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\TaskManager;
+use App\Service\TaskQuery;
+use Doctrine\ORM\EntityManagerInterface; // (no longer used directly except via services)
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,83 +16,77 @@ use Symfony\Component\Routing\Annotation\Route;
 class TaskController extends AbstractController
 {
     #[Route('/', name: 'task_index')]
-    public function index(Request $request, TaskRepository $repo): Response {
+    public function index(Request $request, TaskQuery $query): Response
+    {
+        $page   = max(1, (int) $request->query->get('page', 1));
         $search = $request->query->get('q');
+        $limit  = 5;
 
-        $tasks = $repo->searchByTitle($search);
+        $data = $query->getPageData($page, $limit, $search);
+        $totalPages = (int) ceil($data['total'] / $limit);
 
         return $this->render('task/index.html.twig', [
-            'tasks' => $tasks,
-            'total' => count($tasks),
-            'completed' => $repo->countCompleted(),
-            'search' => $search,
+            'tasks'       => $data['tasks'],
+            'total'       => $data['total'],
+            'completed'   => $data['completed'],
+            'search'      => $search,
+            'currentPage' => $page,
+            'totalPages'  => $totalPages,
+            'limit'       => $limit,
         ]);
     }
 
-
     #[Route('/new', name: 'task_new')]
-    public function new(Request $request, EntityManagerInterface $em): Response
+    public function new(Request $request, TaskManager $manager): Response
     {
         $task = new Task();
         $form = $this->createForm(TaskType::class, $task);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($task);
-            $em->flush();
-
+            $manager->create($task);
             $this->addFlash('success', 'Task added successfully');
             return $this->redirectToRoute('task_index');
         }
 
         return $this->render('task/form.html.twig', [
-            'form' => $form,
+            'form'  => $form,
             'title' => 'Add Task',
         ]);
     }
 
     #[Route('/{id}/edit', name: 'task_edit')]
-    public function edit(Task $task, Request $request, EntityManagerInterface $em): Response
+    public function edit(Task $task, Request $request, TaskManager $manager): Response
     {
         $form = $this->createForm(TaskType::class, $task);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
-
+            $manager->update($task);
             $this->addFlash('success', 'Task updated');
             return $this->redirectToRoute('task_index');
         }
 
         return $this->render('task/form.html.twig', [
-            'form' => $form,
+            'form'  => $form,
             'title' => 'Edit Task',
         ]);
     }
 
     #[Route('/{id}/delete', name: 'task_delete', methods: ['POST'])]
-    public function delete(?Task $task, Request $request, EntityManagerInterface $em): Response
+    public function delete(?Task $task, Request $request, TaskManager $manager): Response
     {
-    if (!$task) {
+        if ($task && $this->isCsrfTokenValid('delete'.$task->getId(), $request->request->get('_token'))) {
+            $manager->delete($task);
+        }
+
         return $this->redirectToRoute('task_index');
     }
-
-    if ($this->isCsrfTokenValid('delete'.$task->getId(), $request->request->get('_token'))) {
-        $em->remove($task);
-        $em->flush();
-    }
-
-    return $this->redirectToRoute('task_index');
-    }
-
 
     #[Route('/{id}/toggle', name: 'task_toggle', methods: ['POST'])]
-    public function toggle(Task $task, EntityManagerInterface $em): Response
+    public function toggle(Task $task, TaskManager $manager): Response
     {
-        $task->setCompleted(!$task->isCompleted());
-        $em->flush();
-
+        $manager->toggle($task);
         return $this->redirectToRoute('task_index');
     }
-
 }

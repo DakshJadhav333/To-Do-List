@@ -128,6 +128,50 @@
                 </ul>
             </div>
 
+    {% if totalPages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+
+            <!-- Previous -->
+            <li class="page-item {{ currentPage == 1 ? 'disabled' }}">
+                <a class="page-link"
+                href="{{ path('task_index', {
+                    page: currentPage - 1,
+                    q: search
+                }) }}">
+                    Previous
+                </a>
+            </li>
+
+            <!-- Page Numbers -->
+            {% for page in 1..totalPages %}
+                <li class="page-item {{ page == currentPage ? 'active' }}">
+                    <a class="page-link"
+                    href="{{ path('task_index', {
+                        page: page,
+                        q: search
+                    }) }}">
+                        {{ page }}
+                    </a>
+                </li>
+            {% endfor %}
+
+            <!-- Next -->
+            <li class="page-item {{ currentPage == totalPages ? 'disabled' }}">
+                <a class="page-link"
+                href="{{ path('task_index', {
+                    page: currentPage + 1,
+                    q: search
+                }) }}">
+                    Next
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+    {% endif %}
+
+
             <!-- STATS -->
             <div class="row text-center g-3">
                 <div class="col-md-4">

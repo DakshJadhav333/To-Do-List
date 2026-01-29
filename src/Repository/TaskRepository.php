@@ -13,6 +13,29 @@ class TaskRepository extends ServiceEntityRepository
         parent::__construct($registry, Task::class);
     }
 
+    public function findPaginatedTasks(int $page, int $limit, ?string $search=null): array
+    {
+        $qb = $this->createQueryBuilder('t')->orderBy('t.createdAt', 'DESC');
+        if($search)
+        {
+            $qb->andWhere('t.title LIKE :search')->setParameter('search','%'.$search.'%');
+        }
+        return $qb->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countTasks(?string $search=null): int
+    {
+        $qb = $this->createQueryBuilder('t')->select('COUNT(t.id)');
+        if ($search) 
+        {
+            $qb->andWhere('LOWER(t.title) LIKE LOWER(:search)')->setParameter('search', '%' . strtolower($search) . '%');
+        }
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
     /**
      * Search tasks by title
      */
@@ -25,7 +48,6 @@ class TaskRepository extends ServiceEntityRepository
             $qb->andWhere('LOWER(t.title) LIKE LOWER(:search)')
                ->setParameter('search', '%' . $search . '%');
         }
-
         return $qb->getQuery()->getResult();
     }
 
