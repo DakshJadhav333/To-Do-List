@@ -8,6 +8,7 @@ use App\Service\TaskManager;
 use App\Service\TaskQuery;
 use Doctrine\ORM\EntityManagerInterface; // (no longer used directly except via services)
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+// use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -16,44 +17,64 @@ use Symfony\Component\Routing\Annotation\Route;
 class TaskController extends AbstractController
 {
     #[Route('/', name: 'task_index')]
-    public function index(Request $request, TaskQuery $query): Response
-    {
-        $page   = max(1, (int) $request->query->get('page', 1));
-        $search = $request->query->get('q');
-        $limit  = 5;
-
-        $data = $query->getPageData($page, $limit, $search);
-        $totalPages = (int) ceil($data['total'] / $limit);
-
-        return $this->render('task/index.html.twig', [
-            'tasks'       => $data['tasks'],
-            'total'       => $data['total'],
-            'completed'   => $data['completed'],
-            'search'      => $search,
-            'currentPage' => $page,
-            'totalPages'  => $totalPages,
-            'limit'       => $limit,
-        ]);
+    #[Route('/', name: 'task_index')]
+public function index(Request $request, TaskQuery $query): Response
+{
+    $user = $this->getUser();
+    if (!$user) {
+        throw $this->createAccessDeniedException();
     }
 
-    #[Route('/new', name: 'task_new')]
-    public function new(Request $request, TaskManager $manager): Response
-    {
-        $task = new Task();
-        $form = $this->createForm(TaskType::class, $task);
+    $page   = max(1, (int) $request->query->get('page', 1));
+    $search = $request->query->get('q');
+    $limit  = 5;
 
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $manager->create($task);
-            $this->addFlash('success', 'Task added successfully');
-            return $this->redirectToRoute('task_index');
+    // ✅ pass user
+    $data = $query->getPageData($user, $page, $limit, $search);
+
+    $totalPages = (int) ceil($data['total'] / $limit);
+
+    return $this->render('task/index.html.twig', [
+        'tasks'       => $data['tasks'],
+        'total'       => $data['total'],
+        'completed'   => $data['completed'],
+        'search'      => $search,
+        'currentPage' => $page,
+        'totalPages'  => $totalPages,
+        'limit'       => $limit,
+    ]);
+}
+ 
+
+#[Route('/new', name: 'task_new')]
+public function new(Request $request, TaskManager $manager): Response
+{
+    $task = new Task();
+    $form = $this->createForm(TaskType::class, $task);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+
+        $user = $this->getUser();
+        if (!$user) {
+            throw $this->createAccessDeniedException('You must be logged in to create a task.');
         }
 
-        return $this->render('task/form.html.twig', [
-            'form'  => $form,
-            'title' => 'Add Task',
-        ]);
+        // ✅ IMPORTANT: set user before saving
+        $task->setUser($user);
+
+        // ✅ save
+        $manager->create($task);
+
+        $this->addFlash('success', 'Task added successfully');
+        return $this->redirectToRoute('task_index');
     }
+
+    return $this->render('task/form.html.twig', [
+        'form'  => $form->createView(),
+        'title' => 'Add Task',
+    ]);
+}
 
     #[Route('/{id}/edit', name: 'task_edit')]
     public function edit(Task $task, Request $request, TaskManager $manager): Response

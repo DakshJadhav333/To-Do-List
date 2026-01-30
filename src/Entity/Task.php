@@ -14,61 +14,77 @@ class Task
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private string $title;
-
-    #[ORM\Column(length: 10)]
-    private string $priority = 'LOW';
+    private ?string $title = null;
 
     #[ORM\Column]
     private bool $completed = false;
 
-    #[ORM\Column]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(type: 'datetime')]
+    private \DateTime $createdAt;
+
+    #[ORM\Column(length: 10)]
+    private ?string $priority = null;
+
+    #[ORM\ManyToOne(inversedBy: 'tasks')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTime(); // ✅ FIXED
     }
 
-    public function getId(): ?int 
-    { 
-        return $this->id; 
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
-    public function getTitle(): string 
-    { 
-        return $this->title; 
+    public function getTitle(): ?string
+    {
+        return $this->title;
     }
 
-    public function setTitle(string $title): self 
-    { 
-        $this->title = $title; 
-        return $this; 
+    public function setTitle(string $title): self
+    {
+        $this->title = $title;
+        return $this;
     }
 
-    public function getPriority(): string 
-    { 
-        return $this->priority; 
+    public function isCompleted(): bool
+    {
+        return $this->completed;
     }
 
-    public function setPriority(string $priority): self 
-    { 
-        $this->priority = $priority; 
-        return $this; 
+    public function setCompleted(bool $completed): self
+    {
+        $this->completed = $completed;
+        return $this;
     }
 
-    public function isCompleted(): bool 
-    { 
-        return $this->completed; 
-    }
-    public function setCompleted(bool $completed): self 
-    { 
-        $this->completed = $completed; 
-        return $this; 
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable 
-    { 
-        return $this->createdAt; 
+    public function getPriority(): ?string
+    {
+        return $this->priority;
+    }
+
+    public function setPriority(string $priority): self
+    {
+        $this->priority = $priority;
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+        return $this;
     }
 }

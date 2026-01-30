@@ -11,6 +11,10 @@ class TaskManager
 
     public function create(Task $task): Task
     {
+        
+//  attach the logged-in user before saving
+        // $task->setUser($user);
+
         $this->em->persist($task);
         $this->em->flush();
         return $task;
